@@ -617,7 +617,7 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
         {
             using (Profile driverProfile = new Profile())
             {
-                driverProfile.DeviceType = "Stroblhofwarte.Helical.Focuser";
+                driverProfile.DeviceType = "Focuser";
                 tl.Enabled = Convert.ToBoolean(driverProfile.GetValue(driverID, traceStateProfileName, string.Empty, traceStateDefault));
                 comPort = driverProfile.GetValue(driverID, comPortProfileName, string.Empty, comPortDefault);
                 _doNotSwitchPowerOff = Convert.ToBoolean(driverProfile.GetValue(driverID, _doNotSwitchPoerOffProfileName, string.Empty, "false"));
@@ -631,7 +631,7 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
         {
             using (Profile driverProfile = new Profile())
             {
-                driverProfile.DeviceType = "Stroblhofwarte.Helical.Focuser";
+                driverProfile.DeviceType = "Focuser";
                 driverProfile.WriteValue(driverID, traceStateProfileName, tl.Enabled.ToString());
                 driverProfile.WriteValue(driverID, comPortProfileName, comPort.ToString());
                 driverProfile.WriteValue(driverID, _doNotSwitchPoerOffProfileName, _doNotSwitchPowerOff.ToString());
