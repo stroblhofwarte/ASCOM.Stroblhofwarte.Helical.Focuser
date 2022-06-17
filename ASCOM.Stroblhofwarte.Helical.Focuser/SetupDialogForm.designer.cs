@@ -36,6 +36,7 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
             this.label2 = new System.Windows.Forms.Label();
             this.chkTrace = new System.Windows.Forms.CheckBox();
             this.comboBoxComPort = new System.Windows.Forms.ComboBox();
+            this.checkBoxPower = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.picASCOM)).BeginInit();
             this.SuspendLayout();
             // 
@@ -112,11 +113,23 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
             this.comboBoxComPort.Size = new System.Drawing.Size(90, 21);
             this.comboBoxComPort.TabIndex = 7;
             // 
+            // checkBoxPower
+            // 
+            this.checkBoxPower.AutoSize = true;
+            this.checkBoxPower.Location = new System.Drawing.Point(16, 48);
+            this.checkBoxPower.Name = "checkBoxPower";
+            this.checkBoxPower.Size = new System.Drawing.Size(124, 17);
+            this.checkBoxPower.TabIndex = 8;
+            this.checkBoxPower.Text = "Keep motor powered";
+            this.checkBoxPower.UseVisualStyleBackColor = true;
+            this.checkBoxPower.CheckStateChanged += new System.EventHandler(this.checkBoxPower_CheckStateChanged);
+            // 
             // SetupDialogForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(350, 175);
+            this.Controls.Add(this.checkBoxPower);
             this.Controls.Add(this.comboBoxComPort);
             this.Controls.Add(this.chkTrace);
             this.Controls.Add(this.label2);
@@ -146,5 +159,6 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.CheckBox chkTrace;
         private System.Windows.Forms.ComboBox comboBoxComPort;
+        private System.Windows.Forms.CheckBox checkBoxPower;
     }
 }

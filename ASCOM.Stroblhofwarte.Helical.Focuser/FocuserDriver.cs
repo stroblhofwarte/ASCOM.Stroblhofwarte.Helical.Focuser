@@ -1,29 +1,36 @@
 //tabs=4
 // --------------------------------------------------------------------------------
-// TODO fill in this information for your driver, then remove this line!
 //
 // ASCOM Focuser driver for Stroblhofwarte.Helical.Focuser
 //
-// Description:	Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam 
-//				nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam 
-//				erat, sed diam voluptua. At vero eos et accusam et justo duo 
-//				dolores et ea rebum. Stet clita kasd gubergren, no sea takimata 
-//				sanctus est Lorem ipsum dolor sit amet.
+// Description:	Stepper motor based relative helical Focuser. The electronic based
+//              on a arduino uno with an CNC board. Only the Y-Motor is used on 
+//              the CNC board.
+//              The communication between this driver and the arduino is done with a simple
+//              serial protocol, 9600 baud. A command from this driver to the arduino ends with
+//              a colon (:), the answer of the arduino ends with a hash (#).
+//              
+//              Command         Response        Description
+//              -----------------------------------------------------------------------------
+//              ID:             FOCUSER#        Device identification
+//              TRxxx:          1#              Move right xxx steps
+//              TLxxx:          1#              Move left xxx steps
+//              ST:             1#              Stop the current movement
+//              MV:             0# or 1#        #1: Rotator is moving, otherwise 0#
+//              MOFF:           1#              The motor is disabled after movement
+//              MON:            1#              The motor is always powerd
 //
-// Implements:	ASCOM Focuser interface version: <To be completed by driver developer>
-// Author:		(XXX) Your N. Here <your@email.here>
+// Implements:	ASCOM Focuser interface 
+// Author:		Othmar Ehrhardt <othmar.ehrhardt@stroblhof-oberrohrbach.de>
 //
 // Edit Log:
 //
 // Date			Who	Vers	Description
 // -----------	---	-----	-------------------------------------------------------
-// dd-mmm-yyyy	XXX	6.0.0	Initial edit, created from ASCOM driver template
+// 17.06.2022	0.9.0	    Initial edit, created from ASCOM driver template
 // --------------------------------------------------------------------------------
 //
 
-
-// This is used to define code in the template that is specific to one class implementation
-// unused code can be deleted and this definition removed.
 #define Focuser
 
 using ASCOM;
@@ -42,15 +49,9 @@ using System.Text;
 namespace ASCOM.Stroblhofwarte.Helical.Focuser
 {
     //
-    // Your driver's DeviceID is ASCOM.Stroblhofwarte.Helical.Focuser.Focuser
+    // DeviceID is ASCOM.Stroblhofwarte.Helical.Focuser.Focuser
     //
-    // The Guid attribute sets the CLSID for ASCOM.Stroblhofwarte.Helical.Focuser.Focuser
-    // The ClassInterface/None attribute prevents an empty interface called
-    // _Stroblhofwarte.Helical.Focuser from being created and used as the [default] interface
-    //
-    // TODO Replace the not implemented exceptions with code to implement the function or
-    // throw the appropriate ASCOM exception.
-    //
+ 
 
     /// <summary>
     /// ASCOM Focuser Driver for Stroblhofwarte.Helical.Focuser.
@@ -64,7 +65,7 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
         /// The DeviceID is used by ASCOM applications to load the driver at runtime.
         /// </summary>
         internal static string driverID = "ASCOM.Stroblhofwarte.Helical.Focuser.Focuser";
-        // TODO Change the descriptive string for your driver then remove this line
+      
         /// <summary>
         /// Driver description that displays in the ASCOM Chooser.
         /// </summary>
@@ -76,6 +77,12 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
         internal static string traceStateDefault = "false";
 
         internal static string comPort; // Variables to hold the current device configuration
+
+        private ASCOM.Utilities.Serial _serial;
+
+        internal static string _doNotSwitchPoerOffProfileName = "DoNotSwitchPowerOff";
+        private bool _doNotSwitchPowerOff = false;
+        private object _lock = new object();
 
         /// <summary>
         /// Private variable to hold the connected state
@@ -96,7 +103,7 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
         /// Variable to hold the trace logger object (creates a diagnostic log file with information that you specify)
         /// </summary>
         internal TraceLogger tl;
-
+        public TraceLogger Logger { get { return tl; } }
         /// <summary>
         /// Initializes a new instance of the <see cref="Stroblhofwarte.Helical.Focuser"/> class.
         /// Must be public for COM registration.
@@ -111,7 +118,7 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
             connectedState = false; // Initialise connected to false
             utilities = new Util(); //Initialise util object
             astroUtilities = new AstroUtils(); // Initialise astro-utilities object
-            //TODO: Implement your additional construction here
+           
 
             tl.LogMessage("Focuser", "Completed initialisation");
         }
@@ -136,12 +143,36 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
             if (IsConnected)
                 System.Windows.Forms.MessageBox.Show("Already connected, just press OK");
 
-            using (SetupDialogForm F = new SetupDialogForm(tl))
+            using (SetupDialogForm F = new SetupDialogForm(this))
             {
                 var result = F.ShowDialog();
                 if (result == System.Windows.Forms.DialogResult.OK)
                 {
                     WriteProfile(); // Persist device configuration values to the ASCOM Profile store
+                }
+            }
+        }
+
+        public bool DoNotSwitchOffMotorPower
+        {
+            get
+            {
+                return _doNotSwitchPowerOff;
+            }
+            set
+            {
+                _doNotSwitchPowerOff = value;
+                WriteProfile();
+                if (!connectedState) return;
+                if (value)
+                {
+                    _serial.Transmit("MON:");
+                    _serial.ReceiveTerminated("#");
+                }
+                else
+                {
+                    _serial.Transmit("MOFF:");
+                    _serial.ReceiveTerminated("#");
                 }
             }
         }
@@ -204,6 +235,29 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
             astroUtilities = null;
         }
 
+        private bool CheckForStroblFocuserDevice()
+        {
+            lock (_lock)
+            {
+                string idString = String.Empty;
+                int retry = 3;
+                while (idString != "FOCUSER#")
+                {
+                    try
+                    {
+                        _serial.Transmit("ID:");
+                        idString = _serial.ReceiveTerminated("#");
+                    }
+                    catch (Exception ex)
+                    {
+                        retry--;
+                        if (retry == 0) return false;
+                        continue;
+                    }
+                }
+                return true;
+            }
+        }
         public bool Connected
         {
             get
@@ -216,19 +270,48 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
                 tl.LogMessage("Connected", "Set {0}", value);
                 if (value == IsConnected)
                     return;
-
                 if (value)
                 {
-                    connectedState = true;
-                    LogMessage("Connected Set", "Connecting to port {0}", comPort);
-                    // TODO connect to the device
+                    LogMessage("Connected Set", "Connecting to address {0}", comPort);
+                    try
+                    {
+                        LogMessage("Connected Set", "Connecting to port {0}", comPort);
+                        lock (_lock)
+                        {
+                            _serial = new ASCOM.Utilities.Serial();
+                            _serial.PortName = comPort;
+                            _serial.StopBits = SerialStopBits.One;
+                            _serial.Parity = SerialParity.None;
+                            _serial.Speed = SerialSpeed.ps9600;
+                            _serial.DTREnable = false;
+                            _serial.Connected = true;
+                            if (CheckForStroblFocuserDevice())
+                            {
+                                connectedState = true;
+                                // set the motor power off state again 
+                                // to transmit this setting also to the arduino device:
+                                bool state = DoNotSwitchOffMotorPower;
+                                DoNotSwitchOffMotorPower = state;
+                            }
+                            else
+                                connectedState = false;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _serial.Connected = false;
+                        _serial.Dispose();
+                        LogMessage("Connected Set", ex.ToString());
+                    }
                 }
                 else
                 {
                     connectedState = false;
-                    LogMessage("Connected Set", "Disconnecting from port {0}", comPort);
-                    // TODO disconnect from the device
+                    _serial.Connected = false;
+                    _serial.Dispose();
+                    LogMessage("Connected Set", "Disconnecting from adress {0}", comPort);
                 }
+
             }
         }
 
@@ -289,30 +372,36 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
 
         #region IFocuser Implementation
 
-        private int focuserPosition = 0; // Class level variable to hold the current focuser position
-        private const int focuserSteps = 10000;
+        private int focuserPosition = 6400; // After switchon the focuser starts always in the middle of the field....
+        private const int focuserSteps = 12800;
 
+        // It is a relative device
         public bool Absolute
         {
             get
             {
-                tl.LogMessage("Absolute Get", true.ToString());
-                return true; // This is an absolute focuser
+                tl.LogMessage("Absolute Get", false.ToString());
+                return false; // This is an absolute focuser
             }
         }
 
         public void Halt()
         {
-            tl.LogMessage("Halt", "Not implemented");
-            throw new ASCOM.MethodNotImplementedException("Halt");
+            if (!connectedState) return;
+            _serial.Transmit("ST:");
+            string ret = _serial.ReceiveTerminated("#");
         }
 
         public bool IsMoving
         {
             get
             {
-                tl.LogMessage("IsMoving Get", false.ToString());
-                return false; // This focuser always moves instantaneously so no need for IsMoving ever to be True
+                if (!connectedState) return false;
+                tl.LogMessage("IsMoving Get", false.ToString()); // This rotator has instantaneous movement
+                _serial.Transmit("MV:");
+                string ret = _serial.ReceiveTerminated("#");
+                if (ret == "1#") return true;
+                return false;
             }
         }
 
@@ -351,6 +440,20 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
         public void Move(int Position)
         {
             tl.LogMessage("Move", Position.ToString());
+            if (Position > focuserSteps) return;
+            if (Position < 0) return;
+            int steps = Position - focuserPosition;
+            if (steps > 0)
+            {
+                _serial.Transmit("TR" + steps.ToString() + ":");
+            }
+            else if (steps < 0)
+            {
+                _serial.Transmit("TL" + (-steps).ToString() + ":");
+            }
+            else
+                return;
+            string ret = _serial.ReceiveTerminated("#");
             focuserPosition = Position; // Set the focuser position
         }
 
@@ -514,9 +617,10 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
         {
             using (Profile driverProfile = new Profile())
             {
-                driverProfile.DeviceType = "Focuser";
+                driverProfile.DeviceType = "Stroblhofwarte.Helical.Focuser";
                 tl.Enabled = Convert.ToBoolean(driverProfile.GetValue(driverID, traceStateProfileName, string.Empty, traceStateDefault));
                 comPort = driverProfile.GetValue(driverID, comPortProfileName, string.Empty, comPortDefault);
+                _doNotSwitchPowerOff = Convert.ToBoolean(driverProfile.GetValue(driverID, _doNotSwitchPoerOffProfileName, string.Empty, "false"));
             }
         }
 
@@ -527,9 +631,10 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
         {
             using (Profile driverProfile = new Profile())
             {
-                driverProfile.DeviceType = "Focuser";
+                driverProfile.DeviceType = "Stroblhofwarte.Helical.Focuser";
                 driverProfile.WriteValue(driverID, traceStateProfileName, tl.Enabled.ToString());
                 driverProfile.WriteValue(driverID, comPortProfileName, comPort.ToString());
+                driverProfile.WriteValue(driverID, _doNotSwitchPoerOffProfileName, _doNotSwitchPowerOff.ToString());
             }
         }
 

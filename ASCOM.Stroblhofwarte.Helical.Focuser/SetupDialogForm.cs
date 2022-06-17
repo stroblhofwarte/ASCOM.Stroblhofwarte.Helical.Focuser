@@ -14,14 +14,16 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
     public partial class SetupDialogForm : Form
     {
         TraceLogger tl; // Holder for a reference to the driver's trace logger
-
-        public SetupDialogForm(TraceLogger tlDriver)
+        Focuser _driver;
+        public SetupDialogForm(Focuser driver)
         {
             InitializeComponent();
 
+            _driver = driver;
             // Save the provided trace logger for use within the setup dialogue
-            tl = tlDriver;
-
+            tl = driver.Logger;
+            driver.ReadProfile();
+            checkBoxPower.Checked = _driver.DoNotSwitchOffMotorPower;
             // Initialise current values of user settings from the ASCOM Profile
             InitUI();
         }
@@ -68,5 +70,11 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
                 comboBoxComPort.SelectedItem = Focuser.comPort;
             }
         }
+
+        private void checkBoxPower_CheckStateChanged(object sender, EventArgs e)
+        {
+            _driver.DoNotSwitchOffMotorPower = checkBoxPower.Checked;
+        }
+
     }
 }
