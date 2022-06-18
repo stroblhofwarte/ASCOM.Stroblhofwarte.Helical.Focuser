@@ -1,0 +1,1 @@
+# ASCOM.Stroblhofwarte.Helical.Focuser
