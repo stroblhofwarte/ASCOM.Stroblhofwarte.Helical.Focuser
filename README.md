@@ -25,3 +25,16 @@ Robust alu housing, sitting on a GP dovetail (via 3D printed mount).
 
 The focus motor is controlled via a simple serial protocol, 9600 baud:
 
+```
+Command         Response        Description
+-----------------------------------------------------------------------------
+ID:             FOCUSER#        Device identification
+TRxxx:          1#              Move right xxx steps
+TLxxx:          1#              Move left xxx steps
+ST:             1#              Stop the current movement
+MV:             0# or 1#        #1: Rotator is moving, otherwise 0#
+MOFF:           1#              The motor is disabled after movement
+MON:            1#              The motor is always powerd
+```
+
+After powerup the focuser does not move, the position is reportet as 6400 and it can be moved between 0 and 12800 steps. The firmware does not restrict the amount of movement, the restriction between 0 and 12800 is introduced by the ASCOM driver. 
