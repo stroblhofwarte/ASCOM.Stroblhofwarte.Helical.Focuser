@@ -381,7 +381,7 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
             get
             {
                 tl.LogMessage("Absolute Get", false.ToString());
-                return false; // This is an absolute focuser
+                return true; // N.I.N.A. seem not to be able to handle a relative focuser...
             }
         }
 
