@@ -22,3 +22,6 @@ Arduino Uno based controler. Firmware for this setup is part of this repo.
 ![alt text](helical_el2.jpg)
 
 Robust alu housing, sitting on a GP dovetail (via 3D printed mount).
+
+The focus motor is controlled via a simple serial protocol, 9600 baud:
+
