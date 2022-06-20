@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ASCOM.Stroblhofwarte.Helical.Focuser.Properties {
+namespace Stroblhofwarte.Helical.Focuser.App.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

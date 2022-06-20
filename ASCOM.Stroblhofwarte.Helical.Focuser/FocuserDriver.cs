@@ -440,8 +440,6 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
         public void Move(int Position)
         {
             tl.LogMessage("Move", Position.ToString());
-            if (Position > focuserSteps) return;
-            if (Position < 0) return;
             int steps = Position - focuserPosition;
             if (steps > 0)
             {
@@ -461,6 +459,10 @@ namespace ASCOM.Stroblhofwarte.Helical.Focuser
         {
             get
             {
+                _serial.Transmit("PO:");
+                string ret = _serial.ReceiveTerminated("#");
+                ret = ret.Replace("#", "");
+                focuserPosition = int.Parse(ret);
                 return focuserPosition; // Return the focuser position
             }
         }

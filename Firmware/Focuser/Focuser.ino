@@ -59,6 +59,7 @@
 #define CMD_TURN_LEFT "TL"
 #define CMD_STOP "ST"
 #define CMD_IS_MOVING "MV"
+#define CMD_POS "PO"
 #define CMD_MOTOR_POWER_OFF "MOFF"
 #define CMD_MOTOR_POWER_ON "MON"
 
@@ -70,6 +71,9 @@ bool _notMotorPowerOff = false;
 
 String g_command = "";
 bool g_commandComplete = false;
+
+long g_powerOffTimeout = 0;
+#define POWERTIMEOUT 1000
 
 void setup() { 
   pinMode(STEP, OUTPUT);
@@ -142,6 +146,11 @@ void Dispatcher()
     _notMotorPowerOff = true;
     Serial.print("1#");
   }
+  else if(g_command.startsWith(CMD_POS))
+  {
+    Serial.print(g_pos_mech);
+    Serial.print("#");
+  }
   else
     Serial.print("0#");
   
@@ -155,6 +164,11 @@ void loop() {
     Dispatcher();
   }
 
+  if(millis() - g_powerOffTimeout > 1000)
+  {
+    if(g_pos_goal == g_pos_mech && _notMotorPowerOff == false)
+      digitalWrite(EN, STEPPER_DISABLE); 
+  }
   if(g_pos_goal > g_pos_mech)
   {
     digitalWrite(EN, STEPPER_ENABLE);
@@ -165,6 +179,7 @@ void loop() {
     delayMicroseconds(g_speed);
     digitalWrite(STEP, LOW); 
     g_pos_mech++;
+    g_powerOffTimeout = millis();
   }
   if(g_pos_goal < g_pos_mech)
   {
@@ -176,9 +191,8 @@ void loop() {
     delayMicroseconds(g_speed);
     digitalWrite(STEP, LOW); 
     g_pos_mech--;
+    g_powerOffTimeout = millis();
   }
-  if(g_pos_goal == g_pos_mech && _notMotorPowerOff == false)
-    digitalWrite(EN, STEPPER_DISABLE); 
 }
 
 void serialEvent() {
