@@ -30,6 +30,7 @@ namespace Stroblhofwarte.Helical.Focuser.App
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(HelicalFocuserForm));
             this.buttonASCOMChooser = new System.Windows.Forms.Button();
             this.labelASCOMDevice = new System.Windows.Forms.Label();
             this.buttonASCOMConnect = new System.Windows.Forms.Button();
@@ -228,6 +229,7 @@ namespace Stroblhofwarte.Helical.Focuser.App
             this.Controls.Add(this.buttonASCOMConnect);
             this.Controls.Add(this.labelASCOMDevice);
             this.Controls.Add(this.buttonASCOMChooser);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "HelicalFocuserForm";
