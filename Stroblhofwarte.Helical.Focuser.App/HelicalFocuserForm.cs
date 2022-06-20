@@ -53,6 +53,11 @@ namespace Stroblhofwarte.Helical.Focuser.App
         {
             buttonRight.Enabled = val;
             buttonLeft.Enabled = val;
+            buttonLeftSlow.Enabled = val;
+            buttonRightSlow.Enabled = val;
+            buttonMove.Enabled = val;
+            labelPosition.Enabled = val;
+            textBoxMoveTo.Enabled = val;
         }
         private void buttonASCOMConnect_Click(object sender, EventArgs e)
         {
@@ -68,6 +73,15 @@ namespace Stroblhofwarte.Helical.Focuser.App
                         EnableFocuserControls(true);
                         _connected = true;
                         textBoxMoveTo.Text = _focuser.Position.ToString();
+                        if(!_focuser.Absolute)
+                        {
+                            MessageBox.Show("This application will work only with absolute focusers!", "Incompatible focuser");
+                            _focuser.Connected = false;
+                            _focuser.Dispose();
+                            _focuser = null;
+                            _connected = false;
+                            EnableFocuserControls(false);
+                        }
                     }
                     else
                     {
