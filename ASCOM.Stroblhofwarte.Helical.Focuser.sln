@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASCOM.Stroblhofwarte.Helica
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stroblhofwarte.Helical.Focuser.App", "Stroblhofwarte.Helical.Focuser.App\Stroblhofwarte.Helical.Focuser.App.csproj", "{189D612D-9A59-40A1-B0A6-B2D9EFA4E109}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Stroblhofwarte.Helical.Focuser.App.Setup", "Stroblhofwarte.Helical.Focuser.App.Setup\Stroblhofwarte.Helical.Focuser.App.Setup.vdproj", "{00165924-6F1E-465C-A4F6-81C3C8C03775}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{189D612D-9A59-40A1-B0A6-B2D9EFA4E109}.Release|Any CPU.Build.0 = Release|Any CPU
 		{189D612D-9A59-40A1-B0A6-B2D9EFA4E109}.Release|x86.ActiveCfg = Release|Any CPU
 		{189D612D-9A59-40A1-B0A6-B2D9EFA4E109}.Release|x86.Build.0 = Release|Any CPU
+		{00165924-6F1E-465C-A4F6-81C3C8C03775}.Debug|Any CPU.ActiveCfg = Debug
+		{00165924-6F1E-465C-A4F6-81C3C8C03775}.Debug|x86.ActiveCfg = Debug
+		{00165924-6F1E-465C-A4F6-81C3C8C03775}.Release|Any CPU.ActiveCfg = Release
+		{00165924-6F1E-465C-A4F6-81C3C8C03775}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -32,6 +32,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Resources\FocuserSymb.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="ASCOM.DeviceInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=565de7938946fba7, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -94,6 +97,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\FocuserBackground.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Focuser.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\FocuserSymb.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
