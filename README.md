@@ -38,4 +38,7 @@ MON:            1#              The motor is always powerd
 PO:             xxxx#           The (relative) position is reported
 ```
 
-After powerup the focuser does not move, the position is reportet as 6400 and it can be moved between 0 and 12800 steps. The firmware does not restrict the amount of movement, the restriction between 0 and 12800 is introduced by the ASCOM driver. 
+After powerup the focuser does not move, the position is reportet as 0 and it can be moved between to negative (left) or positive (right) direction. The firmware does not restrict the amount of movement. 
+
+For usage with the PHD2 guiding software a ASCOM focuser client application is added into this repository. 
+
