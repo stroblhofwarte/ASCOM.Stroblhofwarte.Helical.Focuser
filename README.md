@@ -35,6 +35,7 @@ ST:             1#              Stop the current movement
 MV:             0# or 1#        #1: Rotator is moving, otherwise 0#
 MOFF:           1#              The motor is disabled after movement
 MON:            1#              The motor is always powerd
+PO:             xxxx#           The (relative) position is reported
 ```
 
 After powerup the focuser does not move, the position is reportet as 6400 and it can be moved between 0 and 12800 steps. The firmware does not restrict the amount of movement, the restriction between 0 and 12800 is introduced by the ASCOM driver. 
