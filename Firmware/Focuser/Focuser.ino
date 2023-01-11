@@ -4,9 +4,12 @@
 #define EN   8
 #define SW 10
 
+#define OVERSHOOT_RIGHT 1000
+#define OVERSHOOT_LEFT 0
+
 // Enable only one stepper motor driver!
 //#define NODRV
-#define TMC2130_STANDALONE // TMC2130 SilentStick with SPI jumper closed (Standalone) and all three jumpers open (1/16 µStepping interpolate to 256 steps, realy silent!)
+#define DRV8825 // TMC2130 SilentStick with SPI jumper closed (Standalone) and all three jumpers open (1/16 µStepping interpolate to 256 steps, realy silent!)
 //#define DRV8825 // DRV8825: Must be set to 32 microsteps
 //#define DRVST810 // ST820: Must be set to 256 microsteps
 ///////////////////////////////////////
@@ -72,6 +75,10 @@ bool _notMotorPowerOff = false;
 String g_command = "";
 bool g_commandComplete = false;
 
+#define OBVERSHOOT_DONE 0
+#define OVERSHOOT_DIR_RIGHT 1
+#define OVERSHOOT_DIR_LEFT 2
+int g_overshoot_handling = OBVERSHOOT_DONE;
 long g_powerOffTimeout = 0;
 #define POWERTIMEOUT 1000
 
@@ -113,14 +120,16 @@ void Dispatcher()
   else if(g_command.startsWith(CMD_TURN_RIGHT))
   {
     int val = Extract(CMD_TURN_RIGHT, g_command);
-    long steps = val;
+    long steps = val + OVERSHOOT_RIGHT;
+    g_overshoot_handling = OVERSHOOT_DIR_RIGHT;
     MoveRight(steps);
     Serial.print("1#");
   }
   else if(g_command.startsWith(CMD_TURN_LEFT))
   {
     int val = Extract(CMD_TURN_RIGHT, g_command);
-    long steps = val;
+    long steps = val + OVERSHOOT_LEFT;
+    g_overshoot_handling = OVERSHOOT_DIR_LEFT;
     MoveLeft(steps);
     Serial.print("1#");
   }
@@ -192,6 +201,20 @@ void loop() {
     digitalWrite(STEP, LOW); 
     g_pos_mech--;
     g_powerOffTimeout = millis();
+  }
+  if(g_pos_goal == g_pos_mech && g_overshoot_handling != OBVERSHOOT_DONE)
+  {
+    // Overshoot handling
+    if(g_overshoot_handling == OVERSHOOT_DIR_RIGHT)
+    {
+      g_overshoot_handling = OBVERSHOOT_DONE;
+      MoveLeft(OVERSHOOT_RIGHT);
+    }
+    if(g_overshoot_handling == OVERSHOOT_DIR_LEFT)
+    {
+      g_overshoot_handling = OBVERSHOOT_DONE;
+      MoveRight(OVERSHOOT_LEFT);
+    }
   }
 }
 
